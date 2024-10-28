@@ -1,0 +1,121 @@
+global:
+  spire:
+    clusterName: ${clusterName}
+    trustDomain: ${trustDomain}
+    jwtIssuer: https://oidc-discovery.${domain}
+    recommendations:
+      enabled: false
+    namespaces:
+      create: false
+    strictMode: true
+    telemetry:
+      prometheus:
+        enabled: true
+        podMonitor:
+          enabled: true
+ 
+tornjak-frontend:
+  enabled: true
+  apiServerURL: https://tornjak-backend.${domain}
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/auth-signin: https://login.mattias-gcp.jetstacker.net/oauth2/start?rd=https://$host$request_uri$is_args$args
+      nginx.ingress.kubernetes.io/auth-url: http://oauth2-proxy.authentication.svc.cluster.local/oauth2/auth
+    hosts:
+      - host: tornjak.${domain}
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+    - secretName: tornjak-tls
+      hosts:
+        - tornjak.${domain}
+ 
+spire-server:
+  tornjak:
+    enabled: true
+    ingress:
+      enabled: true
+      className: "nginx"
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        # You can't have authentication on this endpoint as Tornjak wouldn't be able to authenticate.
+        # This isn't safe in a production environment.
+        # nginx.ingress.kubernetes.io/auth-signin: https://login.mattias-gcp.jetstacker.net/oauth2/start?rd=https://$host$request_uri$is_args$args
+        # nginx.ingress.kubernetes.io/auth-url: http://oauth2-proxy.authentication.svc.cluster.local/oauth2/auth
+      hosts:
+        - host: tornjak-backend.${domain}
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+      - secretName: tornjak-backend-tls
+        hosts:
+          - tornjak-backend.${domain}
+  # upstreamAuthority:
+  #   certManager:
+  #     enabled: true
+  #     # The Helm chart automatically adds the -ca at the end on it
+  #     issuer_name: internal
+  #     issuer_kind: ClusterIssuer
+  ca_subject:
+    country: UK
+    organization: Venafi
+    common_name: ${trustDomain}
+  # credentialComposer:
+  #   uniqueID:
+  #     enabled: true
+  controllerManager:
+    enabled: true
+    identities:
+      clusterSPIFFEIDs:
+        default:
+          autoPopulateDNSNames: true
+          workloadSelectorTemplates:
+          - "k8s:pod-name:{{ .PodMeta.Name }}"
+          - "k8s:ns:{{ .PodMeta.Namespace }}"
+          - "k8s:node-name:{{ .NodeMeta.Name }}"
+          # dnsNameTemplates:
+          # - "{{ .PodMeta.Name }}.{{ .PodMeta.Namespace }}.pod.cluster.local"
+ 
+spiffe-oidc-discovery-provider:
+  tls:
+    spire:
+      enabled: false
+  enabled: true
+  insecureScheme:
+    enabled: true
+  config:
+    logLevel: debug
+  agentSocketName: socket
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+    - host: oidc-discovery.${domain}
+      paths:
+        - path: /
+          pathType: Prefix
+    tls:
+    - secretName: oidc-backend-tls
+      hosts:
+        - oidc-discovery.${domain}
+ 
+spire-agent:
+  # This socket path is a requirement for Istio https://istio.io/latest/docs/ops/integrations/spire/
+  socketPath: "/run/secrets/workload-spiffe-uds/socket"
+  workloadAttestors:
+    k8s:
+      skipKubeletVerification: false
+      disableContainerSelectors: false
+ 
+# This socket path is a requirement for Istio https://istio.io/latest/docs/ops/integrations/spire/
+spiffe-csi-driver:
+  agentSocketPath: "/run/secrets/workload-spiffe-uds/socket"
+ 
+ 
