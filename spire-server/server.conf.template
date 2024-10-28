@@ -1,0 +1,41 @@
+server {
+    bind_address = "0.0.0.0"
+    bind_port = "8081"
+    trust_domain = "jodyhuntatx.com"
+    data_dir = "{{ SERVER_DATA_DIR }}"
+    log_level = "DEBUG"
+    log_file = "{{ SERVER_LOGS_DIR }}/server.log"
+
+    jwt_key_type = "rsa-2048"
+    jwt_issuer = "spiffe.jodyhuntatx.com"
+    default_jwt_svid_ttl = "3600s"
+}
+
+plugins {
+    DataStore "sql" {
+        plugin_data {
+            database_type = "sqlite3"
+            connection_string = "{{ SERVER_DATA_DIR }}/datastore.sqlite3"
+        }
+    }
+
+    KeyManager "disk" {
+        plugin_data {
+            keys_path = "{{ SERVER_DATA_DIR }}/keys.json"
+        }
+    }
+
+    NodeAttestor "join_token" {
+        plugin_data {}
+    }
+
+    NodeAttestor "aws_iid" {
+        plugin_data {}
+    }
+
+    CredentialComposer "credentialcomposer-plugin" {
+        plugin_data {}
+        plugin_cmd = "{{ JWT_PLUGIN_BINARY }}"
+        plugin_args = []
+    }
+}
