@@ -4,10 +4,10 @@ pushd jwt-cred-composer
 rm -rf spire-conjur-jwtauth
 popd
 
-pushd spire-server
+pushd spire-cluster
 rm -rf spire
 popd
 
-git add .
-git commit -m "checkpoint"
-git push origin main
+du -sh jwt-cred-composer
+du -sh spire-cluster
+du -sh tornjak

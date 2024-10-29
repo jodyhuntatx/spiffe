@@ -1,7 +1,9 @@
 #!/bin/bash
 
-#echo "Clone repo..."
-#git clone https://github.com/infamousjoeg/spire-conjur-jwtauth.git
+if [ ! -d spire-conjur-jwtauth ]; then
+  echo "Cloning repo..."
+  git clone https://github.com/infamousjoeg/spire-conjur-jwtauth.git
+fi
 
 cd spire-conjur-jwtauth
 

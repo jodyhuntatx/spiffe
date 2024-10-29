@@ -1,13 +1,13 @@
 server {
     bind_address = "0.0.0.0"
     bind_port = "8081"
-    trust_domain = "jodyhuntatx.com"
+    trust_domain = "{{ TRUST_DOMAIN_ID }}"
     data_dir = "{{ SERVER_DATA_DIR }}"
     log_level = "DEBUG"
-    log_file = "{{ SERVER_LOGS_DIR }}/server.log"
+#    log_file = "{{ SERVER_LOGS_DIR }}/server.log"
 
     jwt_key_type = "rsa-2048"
-    jwt_issuer = "spiffe.jodyhuntatx.com"
+    jwt_issuer = "spiffe.{{ TRUST_DOMAIN_ID }}"
     default_jwt_svid_ttl = "3600s"
 }
 
@@ -19,10 +19,8 @@ plugins {
         }
     }
 
-    KeyManager "disk" {
-        plugin_data {
-            keys_path = "{{ SERVER_DATA_DIR }}/keys.json"
-        }
+    KeyManager "memory" {
+        plugin_data {}
     }
 
     NodeAttestor "join_token" {
@@ -31,6 +29,14 @@ plugins {
 
     NodeAttestor "aws_iid" {
         plugin_data {}
+    }
+
+    # Fake CA for self-signed certs
+    UpstreamAuthority "disk" {
+        plugin_data {
+            key_file_path = "{{ SERVER_CERTS_DIR }}/{{ TRUST_DOMAIN_ID }}.key"
+            cert_file_path = "{{ SERVER_CERTS_DIR }}/{{ TRUST_DOMAIN_ID }}.crt"
+        }
     }
 
     CredentialComposer "credentialcomposer-plugin" {
