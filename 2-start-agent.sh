@@ -2,7 +2,7 @@
 
 source ./spire-vars.sh
 
-cd spire
+cd $SPIRE_HOME
 
 echo
 echo "Generating join token for Agent..."

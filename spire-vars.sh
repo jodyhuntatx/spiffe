@@ -1,0 +1,10 @@
+export SPIRE_HOME=~/Conjur/spiffe/prod
+export SPIRE_VERSION=1.10.4
+export TRUST_DOMAIN_ID=jodyhuntatx.org
+export JWT_PLUGIN_BINARY=credentialcomposer-plugin
+export SERVER_DATA_DIR=./data/server
+export SERVER_LOGS_DIR=./logs/server
+export SERVER_CERTS_DIR=./conf/server
+export AGENT_DATA_DIR=./data/agent
+export AGENT_LOGS_DIR=./logs/agent
+export AGENT_CERTS_DIR=./conf/agent
